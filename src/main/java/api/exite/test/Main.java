@@ -15,21 +15,34 @@ public class Main
 	
 	private Controller controller;
 	
-	public Main() throws Exception 
+	public Main(String login, String pass, int documentChainsToBeProcessed) throws Exception 
 	{
 		initLog();
 		log.info("start");
-		controller=new Controller("testSelgrosESF", "c1be0442");		
+		controller=new Controller(login, pass);		
 		/*
-		 * 
+		 * создаем локальное хранилище документов с заданной вместимостью
+		 * тест проводился на 2000 УПД, следовательно необходимая емкость хранилища == 2000 цепочек документооборота
 		 * 
 		 * */
-		LocalEventStorage storage=new LocalEventStorage(2000);
-		
+		LocalEventStorage storage=new LocalEventStorage(documentChainsToBeProcessed);
+		/*
+		 * текущий список собитый получаемый через апи
+		 * перебираем каждый полученный список в цикле
+		 * 
+		 * */
 		List<Event>events;
+		/*
+		 * обработка длится до тех пор, пока локальное хранилище не заполнено (пока хранилище не содержит 2000 цепочек документооборота)		 * 
+		 * 
+		 * */
 		while (storage.hasFreeSpace()) 
 		{
 			log.info("storage: current in progress ["+storage.getCurrentInProgressChainsCount()+"] , current completed ["+storage.getCurrentCompleteChainsCount()+"]");
+			/*
+			 * получение текущего списка событий, которые нужно перебрать в цикле
+			 * 
+			 * */
 			events=controller.getUnreadEvents();			
 			for (Event event : events) 
 			{
@@ -44,7 +57,7 @@ public class Main
 
 	public static void main(String[] args) throws Exception 
 	{
-		new Main();
+		new Main(args[0], args[1], Integer.parseInt(args[2]));
 		
 	}
 	private void initLog() throws Exception
